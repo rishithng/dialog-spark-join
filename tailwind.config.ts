@@ -24,6 +24,14 @@ export default {
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
+				
+				/* Terminal theme colors */
+				'terminal-green': 'hsl(var(--terminal-green))',
+				'terminal-green-dim': 'hsl(var(--terminal-green-dim))',
+				'terminal-green-bright': 'hsl(var(--terminal-green-bright))',
+				'message-own': 'hsl(var(--message-own))',
+				'message-other': 'hsl(var(--message-other))',
+				'timestamp': 'hsl(var(--timestamp))',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))'

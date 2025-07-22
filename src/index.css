@@ -2,39 +2,55 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Unix Terminal Chat Design System - All colors MUST be HSL */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Terminal-inspired dark theme */
+    --background: 220 13% 9%;
+    --foreground: 120 100% 85%;
+    
+    /* Terminal green accent colors */
+    --terminal-green: 120 100% 50%;
+    --terminal-green-dim: 120 60% 40%;
+    --terminal-green-bright: 120 100% 60%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Card and surface colors */
+    --card: 220 13% 12%;
+    --card-foreground: 120 100% 85%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 220 13% 12%;
+    --popover-foreground: 120 100% 85%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary terminal green */
+    --primary: 120 100% 50%;
+    --primary-foreground: 220 13% 9%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary darker surfaces */
+    --secondary: 220 13% 15%;
+    --secondary-foreground: 120 100% 85%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted text and surfaces */
+    --muted: 220 13% 15%;
+    --muted-foreground: 120 20% 60%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent terminal green */
+    --accent: 120 100% 50%;
+    --accent-foreground: 220 13% 9%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Error states */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Borders and inputs */
+    --border: 220 13% 20%;
+    --input: 220 13% 15%;
+    --ring: 120 100% 50%;
+    
+    /* Message styles */
+    --message-own: 120 100% 45%;
+    --message-other: 220 13% 18%;
+    --timestamp: 120 20% 50%;
 
     --radius: 0.5rem;
 
@@ -100,6 +116,33 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-mono;
+  }
+  
+  /* Custom message animations */
+  .message-slide-in {
+    animation: slideIn 0.3s ease-out;
+  }
+  
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Terminal cursor effect */
+  .terminal-cursor::after {
+    content: "█";
+    animation: cursor-blink 1s infinite;
+  }
+  
+  @keyframes cursor-blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
   }
 }
