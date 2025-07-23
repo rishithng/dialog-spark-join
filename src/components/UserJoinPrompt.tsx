@@ -42,13 +42,13 @@ export const UserJoinPrompt = ({ onJoinChat }: UserJoinPromptProps) => {
       <div className="w-full max-w-lg space-y-6 animate-slide-up">
         <div className="text-center space-y-4">
           <div className="flex justify-center">
-            <Terminal className="h-20 w-20 text-terminal-green animate-float" />
+            <Terminal className="h-20 w-20 text-terminal-green animate-float cyber-glow" />
           </div>
-          <h1 className="text-4xl font-bold text-terminal-green animate-glow">Unix Chat Terminal</h1>
+          <h1 className="text-4xl font-bold gradient-text animate-gradient-flow">Unix Real-Time Chat</h1>
           <p className="text-muted-foreground text-lg">Connect with others in real-time</p>
         </div>
         
-        <Card className="bg-card/80 backdrop-blur-sm border-terminal-green/20 shadow-2xl animate-glow">
+        <Card className="bg-card/80 backdrop-blur-sm gradient-border cyber-glow shadow-2xl animate-matrix-shift">
           <CardHeader>
             <CardTitle className="text-terminal-green flex items-center gap-2">
               <Users className="h-5 w-5" />
@@ -87,7 +87,7 @@ export const UserJoinPrompt = ({ onJoinChat }: UserJoinPromptProps) => {
                 </p>
                 <Button 
                   onClick={handleCreateRoom}
-                  className="w-full bg-terminal-green hover:bg-terminal-green-bright text-black font-semibold transition-all duration-300 hover:scale-105"
+                  className="w-full bg-gradient-to-r from-terminal-green to-cyber-blue hover:from-terminal-green-bright hover:to-cyber-purple text-black font-semibold transition-all duration-300 hover:scale-105 cyber-glow"
                   disabled={!username.trim()}
                 >
                   Create New Room
@@ -110,7 +110,7 @@ export const UserJoinPrompt = ({ onJoinChat }: UserJoinPromptProps) => {
                 </div>
                 <Button 
                   onClick={handleJoinRoom}
-                  className="w-full bg-terminal-green hover:bg-terminal-green-bright text-black font-semibold transition-all duration-300 hover:scale-105"
+                  className="w-full bg-gradient-to-r from-cyber-blue to-cyber-purple hover:from-terminal-green hover:to-cyber-blue text-white font-semibold transition-all duration-300 hover:scale-105 cyber-glow"
                   disabled={!username.trim() || !roomCode.trim()}
                 >
                   Join Room

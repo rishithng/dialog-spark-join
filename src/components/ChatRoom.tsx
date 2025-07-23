@@ -4,8 +4,10 @@ import { InteractiveChatInput } from './InteractiveChatInput';
 import { TypingIndicator } from './TypingIndicator';
 import { UserStatus } from './UserStatus';
 import { Button } from '@/components/ui/button';
-import { Terminal, Users, Volume2, VolumeX, Settings, Copy, Check } from 'lucide-react';
+import { Terminal, Users, Volume2, VolumeX, Settings, Copy, Check, Wifi, WifiOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useRealTimeChat } from '@/hooks/useRealTimeChat';
+import type { ChatMessage } from '@/lib/supabase';
 
 interface MessageReaction {
   emoji: string;
@@ -37,17 +39,55 @@ interface ChatRoomProps {
 
 export const ChatRoom = ({ username, roomCode, onLeaveChat }: ChatRoomProps) => {
   const { toast } = useToast();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      username: 'System',
-      message: `Welcome to Unix Chat Terminal, ${username}!`,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      isOwn: false,
-      status: 'delivered',
-      reactions: []
+  
+  // Real-time chat hook
+  const { 
+    messages: realTimeMessages, 
+    isConnected, 
+    isLoading, 
+    sendMessage: sendRealTimeMessage,
+    createRoom 
+  } = useRealTimeChat({
+    username,
+    roomCode,
+    onNewMessage: (message) => {
+      playNotificationSound();
+      toast({
+        title: `New message from ${message.username}`,
+        description: message.message.length > 50 ? message.message.substring(0, 50) + '...' : message.message,
+      });
     }
-  ]);
+  });
+
+  // Convert real-time messages to local format
+  const [localMessages, setLocalMessages] = useState<Message[]>([]);
+  
+  useEffect(() => {
+    const converted = realTimeMessages.map(msg => ({
+      id: msg.id || Date.now().toString(),
+      username: msg.username,
+      message: msg.message,
+      timestamp: new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      isOwn: msg.username === username,
+      status: 'delivered' as const,
+      reactions: []
+    }));
+    
+    // Add welcome message if no messages exist
+    if (converted.length === 0) {
+      converted.unshift({
+        id: 'welcome',
+        username: 'System',
+        message: `Welcome to Unix Chat Terminal, ${username}! ${isConnected ? 'Connected to real-time chat.' : 'Offline mode.'}`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isOwn: false,
+        status: 'delivered',
+        reactions: []
+      });
+    }
+    
+    setLocalMessages(converted);
+  }, [realTimeMessages, username, isConnected]);
   
   const [users, setUsers] = useState<User[]>([
     { username: 'System', status: 'online' },
@@ -68,7 +108,7 @@ export const ChatRoom = ({ username, roomCode, onLeaveChat }: ChatRoomProps) => 
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [localMessages]);
 
   const playNotificationSound = () => {
     if (soundEnabled) {
@@ -86,83 +126,15 @@ export const ChatRoom = ({ username, roomCode, onLeaveChat }: ChatRoomProps) => 
     // In a real app, this would stop the typing indicator
   };
 
-  const handleSendMessage = (message: string) => {
+  const handleSendMessage = async (message: string) => {
     // Handle commands
     if (message.startsWith('/')) {
       handleCommand(message);
       return;
     }
 
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      username,
-      message,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      isOwn: true,
-      status: 'sending',
-      reactions: []
-    };
-    
-    setMessages(prev => [...prev, newMessage]);
-
-    // Simulate message status updates
-    setTimeout(() => {
-      setMessages(prev => prev.map(msg => 
-        msg.id === newMessage.id ? { ...msg, status: 'sent' as const } : msg
-      ));
-    }, 500);
-
-    setTimeout(() => {
-      setMessages(prev => prev.map(msg => 
-        msg.id === newMessage.id ? { ...msg, status: 'delivered' as const } : msg
-      ));
-    }, 1000);
-    
-    // Simulate incoming messages from other users
-    if (Math.random() > 0.6) {
-      // Show typing indicator first
-      const otherUsers = users.filter(u => u.username !== username && u.username !== 'System' && u.status === 'online');
-      if (otherUsers.length > 0) {
-        const randomUser = otherUsers[Math.floor(Math.random() * otherUsers.length)];
-        setTypingUsers([randomUser.username]);
-
-        setTimeout(() => {
-          setTypingUsers([]);
-          
-          const responses = [
-            "That's interesting!",
-            "I agree with that",
-            "Working on some Unix magic ✨",
-            "This terminal chat is so cool!",
-            "Anyone know good Linux resources?",
-            "Great point! 👍",
-            "I'm learning so much here",
-            "Terminal life is the best life"
-          ];
-          
-          const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-          
-          const incomingMessage: Message = {
-            id: (Date.now() + Math.random()).toString(),
-            username: randomUser.username,
-            message: randomResponse,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            isOwn: false,
-            status: 'delivered',
-            reactions: []
-          };
-          
-          setMessages(prev => [...prev, incomingMessage]);
-          playNotificationSound();
-          
-          // Show toast notification
-          toast({
-            title: `New message from ${randomUser.username}`,
-            description: randomResponse.length > 50 ? randomResponse.substring(0, 50) + '...' : randomResponse,
-          });
-        }, 1500 + Math.random() * 2000);
-      }
-    }
+    // Send via real-time chat
+    await sendRealTimeMessage(message);
   };
 
   const handleCommand = (command: string) => {
@@ -173,12 +145,12 @@ export const ChatRoom = ({ username, roomCode, onLeaveChat }: ChatRoomProps) => 
         addSystemMessage('Available commands: /help, /clear, /users, /status [online|away|busy]');
         break;
       case '/clear':
-        setMessages([]);
+        setLocalMessages([]);
         addSystemMessage('Chat history cleared');
         break;
       case '/users':
         const userList = users.map(u => `${u.username} (${u.status})`).join(', ');
-        addSystemMessage(`Active users: ${userList}`);
+        addSystemMessage(`Active users: ${userList}. ${isConnected ? 'Real-time connected' : 'Offline mode'}`);
         break;
       case '/status':
         const newStatus = args[0] as 'online' | 'away' | 'busy';
@@ -206,7 +178,7 @@ export const ChatRoom = ({ username, roomCode, onLeaveChat }: ChatRoomProps) => 
       status: 'delivered',
       reactions: []
     };
-    setMessages(prev => [...prev, systemMessage]);
+    setLocalMessages(prev => [...prev, systemMessage]);
   };
 
   const copyRoomCode = async () => {
@@ -230,7 +202,7 @@ export const ChatRoom = ({ username, roomCode, onLeaveChat }: ChatRoomProps) => 
   };
 
   const handleReaction = (messageId: string, emoji: string) => {
-    setMessages(prev => prev.map(msg => {
+    setLocalMessages(prev => prev.map(msg => {
       if (msg.id === messageId) {
         const existingReaction = msg.reactions?.find(r => r.emoji === emoji);
         if (existingReaction) {
@@ -259,25 +231,35 @@ export const ChatRoom = ({ username, roomCode, onLeaveChat }: ChatRoomProps) => 
       <div className="code-rain"></div>
       {/* Header */}
       <header className="bg-card/80 backdrop-blur-sm border-b border-border p-4 flex items-center justify-between relative z-10">
-        <div className="flex items-center gap-3">
-          <Terminal className="h-6 w-6 text-terminal-green animate-pulse-glow" />
-          <div>
-            <h1 className="text-xl font-bold text-terminal-green">Unix Interactive Chat</h1>
-            {roomCode && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>Room: {roomCode}</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={copyRoomCode}
-                  className="h-6 w-6 p-0 text-terminal-green hover:text-terminal-green-bright transition-colors"
-                >
-                  {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                </Button>
+          <div className="flex items-center gap-3">
+            <Terminal className="h-6 w-6 text-terminal-green animate-pulse-glow cyber-glow" />
+            <div>
+              <h1 className="text-xl font-bold gradient-text animate-gradient-flow">Unix Real-Time Chat</h1>
+              <div className="flex items-center gap-3 text-sm">
+                {roomCode && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <span>Room: {roomCode}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={copyRoomCode}
+                      className="h-6 w-6 p-0 text-terminal-green hover:text-terminal-green-bright transition-colors"
+                    >
+                      {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                    </Button>
+                  </div>
+                )}
+                <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
+                  isConnected 
+                    ? 'bg-terminal-green/20 text-terminal-green' 
+                    : 'bg-destructive/20 text-destructive'
+                }`}>
+                  {isConnected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
+                  {isConnected ? 'Connected' : 'Offline'}
+                </div>
               </div>
-            )}
+            </div>
           </div>
-        </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Users className="h-4 w-4" />
@@ -308,19 +290,25 @@ export const ChatRoom = ({ username, roomCode, onLeaveChat }: ChatRoomProps) => 
           {/* Messages area */}
           <div className="flex-1 overflow-y-auto p-4 space-y-2">
             <div className="flex flex-col">
-              {messages.map((msg) => (
-                <InteractiveChatMessage
-                  key={msg.id}
-                  id={msg.id}
-                  username={msg.username}
-                  message={msg.message}
-                  timestamp={msg.timestamp}
-                  isOwn={msg.isOwn}
-                  status={msg.status}
-                  reactions={msg.reactions}
-                  onReact={handleReaction}
-                />
-              ))}
+              {isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-terminal-green animate-pulse">Loading chat history...</div>
+                </div>
+              ) : (
+                localMessages.map((msg) => (
+                  <InteractiveChatMessage
+                    key={msg.id}
+                    id={msg.id}
+                    username={msg.username}
+                    message={msg.message}
+                    timestamp={msg.timestamp}
+                    isOwn={msg.isOwn}
+                    status={msg.status}
+                    reactions={msg.reactions}
+                    onReact={handleReaction}
+                  />
+                ))
+              )}
               <TypingIndicator usernames={typingUsers} />
               <div ref={messagesEndRef} />
             </div>

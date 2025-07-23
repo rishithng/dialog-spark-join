@@ -9,7 +9,7 @@ const Index = () => {
 
   const handleJoinChat = (newUsername: string, newRoomCode?: string) => {
     setUsername(newUsername);
-    setRoomCode(newRoomCode || null);
+    setRoomCode(newRoomCode || 'GLOBAL'); // Default to GLOBAL room if no code provided
     setIsInChat(true);
   };
 
