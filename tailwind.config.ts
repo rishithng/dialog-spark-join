@@ -29,6 +29,7 @@ export default {
 				'terminal-green': 'hsl(var(--terminal-green))',
 				'terminal-green-dim': 'hsl(var(--terminal-green-dim))',
 				'terminal-green-bright': 'hsl(var(--terminal-green-bright))',
+				'background-dark': 'hsl(var(--background-dark))',
 				'message-own': 'hsl(var(--message-own))',
 				'message-other': 'hsl(var(--message-other))',
 				'timestamp': 'hsl(var(--timestamp))',
@@ -92,11 +93,35 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				"pulse-glow": {
+					"0%, 100%": { 
+						boxShadow: "0 0 20px hsl(var(--terminal-green) / 0.5)" 
+					},
+					"50%": { 
+						boxShadow: "0 0 30px hsl(var(--terminal-green) / 0.8)" 
+					}
+				},
+				"float": {
+					"0%, 100%": { transform: "translateY(0px)" },
+					"50%": { transform: "translateY(-10px)" }
+				},
+				"glow": {
+					"from": { boxShadow: "0 0 20px hsl(var(--terminal-green) / 0.3)" },
+					"to": { boxShadow: "0 0 40px hsl(var(--terminal-green) / 0.6)" }
+				},
+				"slide-up": {
+					"from": { transform: "translateY(20px)", opacity: "0" },
+					"to": { transform: "translateY(0)", opacity: "1" }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				"pulse-glow": "pulse-glow 2s ease-in-out infinite",
+				"float": "float 6s ease-in-out infinite",
+				"glow": "glow 2s ease-in-out infinite alternate",
+				"slide-up": "slide-up 0.4s ease-out"
 			}
 		}
 	},

@@ -14,6 +14,7 @@
     --terminal-green: 120 100% 50%;
     --terminal-green-dim: 120 60% 40%;
     --terminal-green-bright: 120 100% 60%;
+    --background-dark: 220 13% 6%;
 
     /* Card and surface colors */
     --card: 220 13% 12%;
@@ -116,7 +117,70 @@
   }
 
   body {
-    @apply bg-background text-foreground font-mono;
+    @apply bg-background text-foreground font-mono overflow-hidden;
+  }
+  
+  .matrix-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: linear-gradient(180deg, 
+      hsl(var(--background)) 0%, 
+      hsl(var(--background-dark)) 50%, 
+      hsl(var(--background)) 100%);
+  }
+  
+  .matrix-bg::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      radial-gradient(circle at 25% 25%, hsl(var(--terminal-green) / 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, hsl(var(--terminal-green) / 0.05) 0%, transparent 50%);
+    animation: matrix-pulse 4s ease-in-out infinite;
+  }
+  
+  @keyframes matrix-pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.6; }
+  }
+  
+  .code-rain {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+    overflow: hidden;
+  }
+  
+  .code-rain::after {
+    content: '01010101 10101010 11110000 00001111 01100110 10011001';
+    position: absolute;
+    top: -100px;
+    left: 0;
+    width: 100%;
+    height: calc(100% + 200px);
+    color: hsl(var(--terminal-green) / 0.1);
+    font-family: 'Fira Code', monospace;
+    font-size: 12px;
+    line-height: 20px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    animation: code-fall 20s linear infinite;
+  }
+  
+  @keyframes code-fall {
+    0% { transform: translateY(-100px); }
+    100% { transform: translateY(100vh); }
   }
   
   /* Custom message animations */

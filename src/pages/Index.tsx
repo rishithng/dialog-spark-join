@@ -4,15 +4,18 @@ import { ChatRoom } from '@/components/ChatRoom';
 
 const Index = () => {
   const [username, setUsername] = useState<string | null>(null);
+  const [roomCode, setRoomCode] = useState<string | null>(null);
   const [isInChat, setIsInChat] = useState(false);
 
-  const handleJoinChat = (newUsername: string) => {
+  const handleJoinChat = (newUsername: string, newRoomCode?: string) => {
     setUsername(newUsername);
+    setRoomCode(newRoomCode || null);
     setIsInChat(true);
   };
 
   const handleLeaveChat = () => {
     setUsername(null);
+    setRoomCode(null);
     setIsInChat(false);
   };
 
@@ -20,7 +23,7 @@ const Index = () => {
     return <UserJoinPrompt onJoinChat={handleJoinChat} />;
   }
 
-  return <ChatRoom username={username} onLeaveChat={handleLeaveChat} />;
+  return <ChatRoom username={username} roomCode={roomCode} onLeaveChat={handleLeaveChat} />;
 };
 
 export default Index;

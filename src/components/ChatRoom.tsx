@@ -4,7 +4,7 @@ import { InteractiveChatInput } from './InteractiveChatInput';
 import { TypingIndicator } from './TypingIndicator';
 import { UserStatus } from './UserStatus';
 import { Button } from '@/components/ui/button';
-import { Terminal, Users, Volume2, VolumeX, Settings } from 'lucide-react';
+import { Terminal, Users, Volume2, VolumeX, Settings, Copy, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface MessageReaction {
@@ -31,10 +31,11 @@ interface User {
 
 interface ChatRoomProps {
   username: string;
+  roomCode: string | null;
   onLeaveChat: () => void;
 }
 
-export const ChatRoom = ({ username, onLeaveChat }: ChatRoomProps) => {
+export const ChatRoom = ({ username, roomCode, onLeaveChat }: ChatRoomProps) => {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -58,6 +59,7 @@ export const ChatRoom = ({ username, onLeaveChat }: ChatRoomProps) => {
   
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [copied, setCopied] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -207,6 +209,26 @@ export const ChatRoom = ({ username, onLeaveChat }: ChatRoomProps) => {
     setMessages(prev => [...prev, systemMessage]);
   };
 
+  const copyRoomCode = async () => {
+    if (roomCode) {
+      try {
+        await navigator.clipboard.writeText(roomCode);
+        setCopied(true);
+        toast({
+          title: "Room code copied!",
+          description: "Share this code with others to invite them to the room.",
+        });
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        toast({
+          title: "Failed to copy",
+          description: "Could not copy room code to clipboard.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   const handleReaction = (messageId: string, emoji: string) => {
     setMessages(prev => prev.map(msg => {
       if (msg.id === messageId) {
@@ -232,12 +254,29 @@ export const ChatRoom = ({ username, onLeaveChat }: ChatRoomProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col relative">
+      <div className="matrix-bg"></div>
+      <div className="code-rain"></div>
       {/* Header */}
-      <header className="bg-card border-b border-border p-4 flex items-center justify-between">
+      <header className="bg-card/80 backdrop-blur-sm border-b border-border p-4 flex items-center justify-between relative z-10">
         <div className="flex items-center gap-3">
-          <Terminal className="h-6 w-6 text-terminal-green" />
-          <h1 className="text-xl font-bold text-terminal-green">Unix Interactive Chat</h1>
+          <Terminal className="h-6 w-6 text-terminal-green animate-pulse-glow" />
+          <div>
+            <h1 className="text-xl font-bold text-terminal-green">Unix Interactive Chat</h1>
+            {roomCode && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>Room: {roomCode}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={copyRoomCode}
+                  className="h-6 w-6 p-0 text-terminal-green hover:text-terminal-green-bright transition-colors"
+                >
+                  {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -265,7 +304,7 @@ export const ChatRoom = ({ username, onLeaveChat }: ChatRoomProps) => {
 
       <div className="flex-1 flex">
         {/* Main chat area */}
-        <main className="flex-1 flex flex-col">
+        <main className="flex-1 flex flex-col relative z-10">
           {/* Messages area */}
           <div className="flex-1 overflow-y-auto p-4 space-y-2">
             <div className="flex flex-col">
@@ -296,7 +335,7 @@ export const ChatRoom = ({ username, onLeaveChat }: ChatRoomProps) => {
         </main>
 
         {/* Active users sidebar */}
-        <aside className="w-64 bg-card border-l border-border p-4">
+        <aside className="w-64 bg-card/80 backdrop-blur-sm border-l border-border p-4 relative z-10">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-terminal-green flex items-center gap-2">
               <Users className="h-5 w-5" />
